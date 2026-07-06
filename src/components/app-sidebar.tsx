@@ -3,7 +3,6 @@
 import * as React from "react"
 import {
   Activity,
-  Archive,
   BarChart3,
   BellRing,
   Database,
@@ -62,6 +61,7 @@ const data = {
         { title: "Recycle Bin", url: "/dashboard/recycle-bin", icon: Trash2 },
         { title: "Backup & Restore", url: "/dashboard/backup", icon: Database },
         { title: "Settings", url: "/dashboard/settings", icon: Settings },
+        { title: "WhatsApp API", url: "/dashboard/whatsapp", icon: Settings },
       ],
     },
   ],
@@ -86,12 +86,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <SidebarMenu>
                 {group.items.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
-                      <a href={item.url}>
+                    <a href={item.url} className="w-full block">
+                      <SidebarMenuButton>
                         <item.icon />
                         <span>{item.title}</span>
-                      </a>
-                    </SidebarMenuButton>
+                      </SidebarMenuButton>
+                    </a>
                   </SidebarMenuItem>
                 ))}
               </SidebarMenu>

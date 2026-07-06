@@ -1,7 +1,6 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useActionState } from "react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -13,23 +12,16 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { authenticate } from "@/app/actions/auth"
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    // Simulate login for now
-    setTimeout(() => {
-      setLoading(false);
-      router.push("/dashboard");
-    }, 1000);
-  };
+  const [errorMessage, formAction, isPending] = useActionState(
+    authenticate,
+    undefined,
+  )
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -41,13 +33,14 @@ export function LoginForm({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit}>
+          <form action={formAction}>
             <div className="grid gap-6">
               <div className="grid gap-6">
                 <div className="grid gap-2">
                   <Label htmlFor="username">Username</Label>
                   <Input
                     id="username"
+                    name="username"
                     type="text"
                     placeholder="e.g. Anmol0001"
                     required
@@ -63,10 +56,15 @@ export function LoginForm({
                       Forgot your password?
                     </a>
                   </div>
-                  <Input id="password" type="password" required />
+                  <Input id="password" name="password" type="password" required />
                 </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? "Logging in..." : "Login"}
+                {errorMessage && (
+                  <div className="text-sm text-red-500 font-medium">
+                    {errorMessage}
+                  </div>
+                )}
+                <Button type="submit" className="w-full" disabled={isPending}>
+                  {isPending ? "Logging in..." : "Login"}
                 </Button>
               </div>
               <div className="text-center text-sm text-muted-foreground">
