@@ -79,6 +79,24 @@ export async function createBill(data: {
       return insertedBill;
     });
 
+    // 6. Send WhatsApp Receipt
+    try {
+      const { customers } = await import("@/db/schema");
+      const [customer] = await db.select().from(customers).where(eq(customers.id, data.customerId));
+      
+      if (customer && customer.contactNumber) {
+        const { sendWhatsAppMessage } = await import("./whatsapp");
+        const printUrl = `https://erp-system-rho-fawn.vercel.app/dashboard/billing/print/${newBill.id}`;
+        
+        const message = `Hello ${customer.name},\n\nYour bill (${newBill.serialNumber}) for Rs. ${data.totalAmount} has been generated at Anmol Fabrics.\n\nYou can view and download your bill here: ${printUrl}\n\nThank you for shopping with us!`;
+        
+        // Don't await to avoid blocking the UI, let it send in the background
+        sendWhatsAppMessage(customer.contactNumber, message).catch(console.error);
+      }
+    } catch (e) {
+      console.error("Error sending WhatsApp receipt:", e);
+    }
+
     revalidatePath("/dashboard/billing");
     revalidatePath("/dashboard/inventory");
     revalidatePath("/dashboard/calling");
@@ -87,4 +105,35 @@ export async function createBill(data: {
     console.error("Error creating bill:", error);
     return { success: false, error: error.message };
   }
+}
+export async function getBillDetails(id: number) {
+  const session = await auth();
+  if (!session?.user) throw new Error("Unauthorized");
+  
+  const [bill] = await db.select().from(bills).where(eq(bills.id, id));
+  if (!bill) return null;
+  
+  const { customers, users } = await import("@/db/schema");
+  const [customer] = await db.select().from(customers).where(eq(customers.id, bill.customerId!));
+  const [salesman] = await db.select().from(users).where(eq(users.id, bill.salesmanId!));
+  
+  const items = await db.select({
+    id: billItems.id,
+    quantity: billItems.quantity,
+    discountPerPiece: billItems.discountPerPiece,
+    inventoryId: billItems.inventoryId,
+    itemName: inventory.itemName,
+    sku: inventory.sku,
+    sellingPrice: inventory.sellingPrice
+  })
+  .from(billItems)
+  .leftJoin(inventory, eq(billItems.inventoryId, inventory.id))
+  .where(eq(billItems.billId, id));
+  
+  return {
+    ...bill,
+    customer,
+    salesman,
+    items
+  };
 }

@@ -28,7 +28,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             return {
                 id: user.id.toString(),
                 name: user.username,
-                roleId: user.roleId
+                roleId: user.roleId !== null ? user.roleId : undefined
             };
         }
         

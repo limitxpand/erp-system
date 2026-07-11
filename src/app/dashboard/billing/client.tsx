@@ -63,6 +63,9 @@ export default function BillingClient({ customers, inventory }: { customers: any
       alert("Bill Created Successfully!");
       setCart([]);
       setSelectedCustomer("");
+      if (result.bill?.id) {
+        window.open(`/dashboard/billing/print/${result.bill.id}`, "_blank");
+      }
     } else {
       alert("Failed to create bill: " + result.error);
     }

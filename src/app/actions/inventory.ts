@@ -55,8 +55,8 @@ export async function updateInventory(id: number, data: any) {
 }
 
 export async function deleteInventory(id: number) {
-  const session = await auth();
-  if (!session?.user) throw new Error("Unauthorized");
+  const { verifyAdmin } = await import("@/lib/auth-helpers");
+  await verifyAdmin();
   
   const { eq } = await import("drizzle-orm");
   
